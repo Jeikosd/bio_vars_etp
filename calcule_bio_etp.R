@@ -4,7 +4,7 @@
 ###########################################################
 ###########################################################
 
-### Agosto 2016 - Castro & Mesa 
+### Agosto 2016 - Castro & Mesa ## Gracias
 
 require(rgdal); require(sp); require(raster); require(dplyr); require(usdm); require(maps); library(SDMTools); library(maptools)
 
