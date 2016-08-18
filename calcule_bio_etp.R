@@ -4,17 +4,74 @@
 ###########################################################
 ###########################################################
 
-### Agosto 2016 - Castro & Mesa ## Gracias otra vez
+### Agosto 2016 - Mesa & Castro
 
-require(rgdal); require(sp); require(raster); require(dplyr); require(usdm); require(maps); library(SDMTools); library(maptools)
+require(gtools); require(rgdal); require(sp); require(raster); require(dplyr); require(usdm); require(maps); library(SDMTools); library(maptools)
+require(dplyr)
 
-path <- "D:/CC/_bd/_colombia/_evapotranspiration/_etp_worldclim_v1/_asc/_monthly/"
-path_output <- "D:/CC/_bd/_colombia/_evapotranspiration/_etp_worldclim_v1/_asc/_bios_etp"
+path <- "//dapadfs/workspace_cluster_8/Coffee_Cocoa/CIAT2016/_bd/_colombia/_raster/_etpVariables/_etp_rcp60/_asc"  ## path raster evapatransporation
 
-etp <- paste0(path, "/etp_m_", 1:12, ".asc")
-etp_layers <- lapply(etp, FUN = raster)
+output <- "//dapadfs/workspace_cluster_8/Coffee_Cocoa/CIAT2016/_bd/_colombia/_raster/_etpVariables/_bios_etp_rcp60/_asc"  ## output bio ETP (Evapo...)
 
-etp_layer_st <- stack(etp_layers)
+
+x <- list.dirs(path, recursive = F)
+models <- basename(x)
+year <- c('2020_2049', '2040_2069')
+
+y <- lapply(x, list.dirs, recursive = F)
+names(y) <- models
+
+
+z <- list.files(y[[models[1]]][1], full.names = T, pattern = '.asc$') ### models[[1]] esta en la posicion del objeto str models y luego [1] es para el escenario 2049; [2] escenario 2069
+
+w <- mixedsort(z) #ordenar de menor a mayor
+
+r <- lapply(w, raster)  %>%
+  stack()
+
+
+
+## Función para ejecutar la variable ETP 1 que es la evapotranspiración acumulada
+
+for(i in 1:length(year)){
+  
+  cat('year ', year[i], '\n')
+  
+  for(m in 1:length(models)){
+  
+    cat('model ', models[m], '\n')
+    
+    output_all <- paste0(output, '/', models[m],  '/', year[i], '/')
+    
+    ETP_1(r, filename = paste0(output_all, '/ETP_1.asc'))
+    
+  }
+}
+
+## Función para ejecutar la variable ETP 2 que es la estacionalidad de la evapotranspiración (coeficiente de variación x 100)
+
+for(i in 1:length(year)){
+  
+  cat('year ', year[i], '\n')
+  
+  for(m in 1:length(models)){
+    
+    cat('model ', models[m], '\n')
+    
+    output_all <- paste0(output, '/', models[m],  '/', year[i], '/')
+    
+    ETP_2(r, filename = paste0(output_all, '/ETP_2.asc'))
+    
+  }
+}
+
+
+
+
+# etp <- paste0(path, "/etp_m_", 1:12, ".asc")
+# etp_layers <- lapply(etp, FUN = raster)
+# 
+# etp_layer_st <- stack(etp_layers)
 plot(etp_layer_st)
 
 path_prec <- "D:/CC/_bd/_colombia/_raster/_worldclim_v1/_30s/_asc"
@@ -25,53 +82,6 @@ path_tmean <- "D:/CC/_bd/_colombia/_raster/_worldclim_v1/_30s/_asc"
 tmean <- paste0(path_tmean, "/tmean_", 1:12, ".asc")
 tmean <- lapply(tmean, FUN = raster) 
 
-
-###################################
-### Calculo Annual ETP
-##############################
-
-annual_pet <- sum(etp_layer_st)
-plot(annual_pet)
-writeRaster(annual_pet, paste0(path_output, "/annual_etp.asc"))
-
-##############################
-### Calculo Seasonality CV 
-##############################
-
-etp_mean <- mean(etp_layer_st)
-etp_sd   <- calc(etp_layer_st, sd, na.rm=TRUE)
-etp_cv   <- (etp_sd/etp_mean)*100
-
-plot(etp_sd)
-#min(etp_sd[], na.rm = TRUE)
-
-writeRaster(etp_cv, paste0(path_output, "/etp_cv.asc"))
-
-##############################
-### Calculo ETP Max
-##############################
-
-etp_max <- max(etp_layer_st)
-plot(etp_max)
-
-writeRaster(etp_max, paste0(path_output, "/etp_max.asc"))
-
-##############################
-### Calculo ETP Min
-##############################
-
-etp_min <- min(etp_layer_st)
-plot(etp_min)
-
-writeRaster(etp_min, paste0(path_output, "/etp_min.asc"))
-
-##############################
-### Calculo ETP Range(max-min)
-##############################
-
-range <- etp_max-etp_min
-
-writeRaster(range, paste0(path_output, "/etp_range.asc"))
 
 ###################################
 ### Calculo ETP of wettest quarter (trimestre más húmedo (con mayor ppt)) #package Bioclim
