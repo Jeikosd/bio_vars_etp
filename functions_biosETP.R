@@ -126,8 +126,6 @@ ETP_5 <- function(etp, ...){
   return(range)
   
 }
-
-
 ###################################
 ### Calculo ETP of wettest quarter (trimestre más húmedo (con mayor ppt)) #package Bioclim
 ###################################
