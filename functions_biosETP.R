@@ -2,32 +2,76 @@
 
 ## Recordar que como estamos trabajando con raster quiza sea mas eficiente temporal dir para raster (para no consumir memoria) rasterOptions()
 
+## only for proof
+## x = etp_months_raster
+## filename = 'test'
 
-path_var <- "//dapadfs/workspace_cluster_8/Coffee_Cocoa/CIAT2016/_bd/_colombia/_raster/_cmip5/rcp60_extracts/Global_30s"
-path_var <- list.dirs(path_var, recursive = F)
-path_var <- lapply(path_var, list.dirs, recursive = F) ## [[1]] numero modelo [[]][1] numero de año
+output <- "//dapadfs/workspace_cluster_8/Coffee_Cocoa/CIAT2016/_bd/_colombia/_raster/_etpVariables/_bios_etp_rcp60/_asc/"   ## output bio ETP (Evapo...)
 
 
-ETP_1 <- function(etp, ...){
-  
-  listado <- list.files(path_var[[i]][j], full.names = T, pattern = ".asc$")
-  
-  path_etp <- mixedsort(subset(y, str_detect(y,"etp")))
-  
-  etp <- lapply(path_etp, FUN = raster) %>%
-    stack()
-  
-  writeRaster(etp, paste0(output, model[[]], year[], "ETP_1.asc"))
-  outfile <- 'D:/CC/_bd/_colombia/_evapotranspiration/_etp_worldclim_v1/_asc/_bios_etp/ETP8.asc'
-  format <- 'ascii'
-  etp <- sum(etp)
-  writeRaster(etp, ...)
-  
-  return(etp)
 
+
+ETP_1(x, filename = paste0(output, 'proof.asc'), overwrite = TRUE)
+
+
+ETP_1 <- function(x, filename, return_, ...){
+  
+  out <- raster(x)
+  big <- ! canProcessInMemory(out, 3)
+  filename <- trim(filename)
+  
+  if (big & filename == '') {
+    
+    filename <- rasterTmpFile()
+    
+  }
+  
+  if (filename != '') {
+    
+    out <- writeStart(out, filename, ...)
+    todisk <- TRUE
+    
+  } else {
+    vv <- matrix(ncol=nrow(out), nrow=ncol(out))
+    todisk <- FALSE
+  }
+  
+  bs <- blockSize(x)
+    
+  pb <- pbCreate(bs$n, ...)
+
+  if (todisk) {
+  
+    for (i in 1:bs$n) {
+      v <- getValues(x, row=bs$row[i], nrows=bs$nrows[i] )
+      
+      v <- apply(v, 1, sum)  ## Linea a Cambiar
+      
+      out <- writeValues(out, v, bs$row[i])
+      pbStep(pb, i)
+      
+    }
+    
+    out <- writeStop(out)
+  } else {
+    
+    for (i in 1:bs$n) {
+      
+      v <- getValues(x, row=bs$row[i], nrows=bs$nrows[i] )
+      v <- apply(v, 1, sum) ## Linea a Cambiar
+      cols <- bs$row[i]:(bs$row[i]+bs$nrows[i]-1)
+      vv[,cols] <- matrix(v, nrow=out@ncols)
+      pbStep(pb, i)
+    
+      }
+    out <- setValues(out, as.vector(vv))
+    
+  }
+  
+  pbClose(pb)
+  return(out)
 }
 
-ETP_1()
 
 ##############################
 ### Calculo Seasonality CV 
@@ -88,10 +132,10 @@ ETP_5 <- function(etp, ...){
 ### Calculo ETP of wettest quarter (trimestre más húmedo (con mayor ppt)) #package Bioclim
 ###################################
 
-rlist <- prec
-rlist2 <- etp_layers
-outfile <- 'D:/CC/_bd/_colombia/_evapotranspiration/_etp_worldclim_v1/_asc/_bios_etp/ETP8.asc'
-format <- 'ascii'
+# rlist <- prec
+# rlist2 <- etp_layers
+# outfile <- 'D:/CC/_bd/_colombia/_evapotranspiration/_etp_worldclim_v1/_asc/_bios_etp/ETP8.asc'
+# format <- 'ascii'
 
 # fileoutput <- "D:/CC/_bd/_colombia/_evapotranspiration/_etp_worldclim_v1/_asc/_bios_etp/ETP8.asc"
 # rasterETP <- raster(fileoutput)

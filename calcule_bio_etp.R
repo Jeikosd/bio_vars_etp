@@ -4,29 +4,198 @@
 ###########################################################
 ###########################################################
 
-### Agosto 2016 - Mesa & Castro
+### Agosto 2016 - Castro & Mesa
 
-require(gtools); require(rgdal); require(sp); require(raster); require(dplyr); require(usdm); require(maps); library(SDMTools); library(maptools)
-require(dplyr); require(stringr)
+library(gtools)
+library(rgdal)
+library(sp)
+library(raster)
+library(dplyr)
+library(usdm)
+library(maps)
+library(SDMTools)
+library(maptools)
+library(stringr)
 
-path <- "//dapadfs/workspace_cluster_8/Coffee_Cocoa/CIAT2016/_bd/_colombia/_raster/_etpVariables/_etp_rcp60/_asc"  ## path raster evapatransporation
+## Librerias para trabajar en paralelo
+library(foreach)
+library(doSNOW) 
+
+
+### Lineas a Modificar
+
+path <- "//dapadfs/workspace_cluster_8/Coffee_Cocoa/CIAT2016/_bd/_colombia/_raster/_etpVariables/_etp_rcp60/_asc/"  ## path raster evapatransporation
 
 output <- "//dapadfs/workspace_cluster_8/Coffee_Cocoa/CIAT2016/_bd/_colombia/_raster/_etpVariables/_bios_etp_rcp60/_asc"  ## output bio ETP (Evapo...)
 
-x <- list.dirs(path, recursive = F)
-models <- basename(x)
+path_models <- list.dirs(path, recursive = F)
+models <- basename(path_models)
 year <- c('2020_2049', '2040_2069')
 
-y <- lapply(x, list.dirs, recursive = F)
-names(y) <- models
+models_by_year <- lapply(path_models, list.dirs, recursive = F)
+names(models_by_year) <- models
+
+#### 
+
+## Librerias para trabajar en paralelo
+library(foreach)
+library(doSNOW) 
+
+cl <- makeCluster(10)
+registerDoSNOW(cl)  ## For Windows
 
 
-z <- list.files(y[[models[1]]][1], full.names = T, pattern = '.asc$') ### models[[1]] esta en la posicion del objeto str models y luego [1] es para el escenario 2049; [2] escenario 2069
+length_run <- length(models)
 
-w <- mixedsort(z) #ordenar de menor a mayor
+pb <- txtProgressBar(max = length_run, style = 3)
+progress <- function(n) setTxtProgressBar(pb, n)
 
-r <- lapply(w, raster)  %>%
-  stack()
+opts <- list(progress=progress)
+
+foreach(i = 1:length(models), .packages = c('raster', 'dplyr', 'gtools', 'foreach'), .options.snow=opts, .export = 'ETP_1') %dopar% {
+  
+  foreach(j = 1:length(year)) %do% {
+    
+    etp_months <- list.files(models_by_year[[models[i]]][j], full.names = T, pattern = '.asc$') %>% ### models[[1]] esta en la posicion del objeto str models y luego [1] es para el escenario 2049; [2] escenario 2069
+      mixedsort()
+    
+    etp_months_raster <- lapply(etp_months, raster)  %>%
+      stack()
+    
+    ETP_1(etp_months_raster, paste0(output, '/',  models[i],  '/', year[j], '/etp_1.asc'))
+    
+  }
+  
+}
+
+
+close(pb)
+
+
+length_run <- length(models)
+
+pb <- txtProgressBar(max = length_run, style = 3)
+progress <- function(n) setTxtProgressBar(pb, n)
+
+opts <- list(progress=progress)
+
+foreach(i = 1:length(models), .packages = c('raster', 'dplyr', 'gtools', 'foreach'), .options.snow=opts, .export = 'ETP_1') %dopar% {
+  
+  foreach(j = 1:length(year)) %do% {
+    
+    etp_months <- list.files(models_by_year[[models[i]]][j], full.names = T, pattern = '.asc$') %>% ### models[[1]] esta en la posicion del objeto str models y luego [1] es para el escenario 2049; [2] escenario 2069
+      mixedsort()
+    
+    etp_months_raster <- lapply(etp_months, raster)  %>%
+      stack()
+    
+    ETP_2(etp_months_raster, paste0(output, '/',  models[i],  '/', year[j], '/etp_2.asc'))
+    
+  }
+  
+}
+
+
+close(pb)
+
+
+
+
+length_run <- length(models)
+
+pb <- txtProgressBar(max = length_run, style = 3)
+progress <- function(n) setTxtProgressBar(pb, n)
+
+opts <- list(progress=progress)
+
+foreach(i = 1:length(models), .packages = c('raster', 'dplyr', 'gtools', 'foreach'), .options.snow=opts, .export = 'ETP_1') %dopar% {
+  
+  foreach(j = 1:length(year)) %do% {
+    
+    etp_months <- list.files(models_by_year[[models[i]]][j], full.names = T, pattern = '.asc$') %>% ### models[[1]] esta en la posicion del objeto str models y luego [1] es para el escenario 2049; [2] escenario 2069
+      mixedsort()
+    
+    etp_months_raster <- lapply(etp_months, raster)  %>%
+      stack()
+    
+    ETP_3(etp_months_raster, paste0(output, '/',  models[i],  '/', year[j], '/etp_3.asc'))
+    
+  }
+  
+}
+
+
+
+
+close(pb)
+
+
+
+length_run <- length(models)
+
+pb <- txtProgressBar(max = length_run, style = 3)
+progress <- function(n) setTxtProgressBar(pb, n)
+
+opts <- list(progress=progress)
+
+foreach(i = 1:length(models), .packages = c('raster', 'dplyr', 'gtools', 'foreach'), .options.snow=opts, .export = 'ETP_1') %dopar% {
+  
+  foreach(j = 1:length(year)) %do% {
+    
+    etp_months <- list.files(models_by_year[[models[i]]][j], full.names = T, pattern = '.asc$') %>% ### models[[1]] esta en la posicion del objeto str models y luego [1] es para el escenario 2049; [2] escenario 2069
+      mixedsort()
+    
+    etp_months_raster <- lapply(etp_months, raster)  %>%
+      stack()
+    
+    ETP_4(etp_months_raster, paste0(output, '/',  models[i],  '/', year[j], '/etp_4.asc'))
+    
+  }
+  
+}
+
+
+
+
+close(pb)
+
+
+length_run <- length(models)
+
+pb <- txtProgressBar(max = length_run, style = 3)
+progress <- function(n) setTxtProgressBar(pb, n)
+
+opts <- list(progress=progress)
+
+foreach(i = 1:length(models), .packages = c('raster', 'dplyr', 'gtools', 'foreach'), .options.snow=opts, .export = 'ETP_1') %dopar% {
+  
+  foreach(j = 1:length(year)) %do% {
+    
+    etp_months <- list.files(models_by_year[[models[i]]][j], full.names = T, pattern = '.asc$') %>% ### models[[1]] esta en la posicion del objeto str models y luego [1] es para el escenario 2049; [2] escenario 2069
+      mixedsort()
+    
+    etp_months_raster <- lapply(etp_months, raster)  %>%
+      stack()
+    
+    ETP_5(etp_months_raster, paste0(output, '/',  models[i],  '/', year[j], '/etp_5.asc'))
+    
+  }
+  
+}
+
+
+
+
+close(pb)
+stopCluster(cl)
+
+
+
+
+
+
+
+
 
 
 ######################
