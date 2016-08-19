@@ -1,19 +1,5 @@
 ### Funciones para calcular bio solo con etp
 
-## Recordar que como estamos trabajando con raster quiza sea mas eficiente temporal dir para raster (para no consumir memoria) rasterOptions()
-
-## only for proof
-## x = etp_months_raster
-## filename = 'test'
-
-output <- "//dapadfs/workspace_cluster_8/Coffee_Cocoa/CIAT2016/_bd/_colombia/_raster/_etpVariables/_bios_etp_rcp60/_asc/"   ## output bio ETP (Evapo...)
-
-
-
-
-ETP_1(x, filename = paste0(output, 'proof.asc'), overwrite = TRUE)
-
-
 ETP_1 <- function(x, filename, return_, ...){
   
   out <- raster(x)
